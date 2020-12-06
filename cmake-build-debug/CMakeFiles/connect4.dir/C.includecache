@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+F:/1Repo/systems-prog-coursework/connect4.c
+connect4.h
+F:/1Repo/systems-prog-coursework/connect4.h
+stdio.h
+-
+stdlib.h
+-
+stdbool.h
+-
+ctype.h
+-
+
+F:/1Repo/systems-prog-coursework/connect4.h
+stdio.h
+-
+
