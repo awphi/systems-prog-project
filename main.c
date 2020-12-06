@@ -9,7 +9,7 @@ int main(){
   fclose(infile);
 
   write_out_file(stdout,my_board);
-   
+
   while(current_winner(my_board)=='.') {
     // Had to add my_board as argument to this function otherwise it was using random memory it seems
     struct move next_move = read_in_move(my_board);

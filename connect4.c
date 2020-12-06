@@ -16,13 +16,12 @@ struct board_structure {
     char* data;
 };
 
-// This coordinate system is top-left origin as opposed to question which assumes top-right origin
 char* cell_wrapc(board u, int c, int r, bool wrapc) {
-    if(wrapc) {
-        c = EUCMOD(c, u->cols);
+    if(wrapc && (c > 8 || c < 1)) {
+        c = EUCMOD((c - 1), u->cols) + 1;
     }
 
-    return &u->data[r * u->cols + c];
+    return &u->data[(r - 1) * u->cols + (c - 1)];
 }
 
 char* cell(board u, int c, int r) {
@@ -56,15 +55,15 @@ void read_in_file(FILE *infile, board u) {
     u->rows = r;
     u->data = calloc(u->cols * u->rows, sizeof(char));
 
-    r = 0;
-    c = 0;
+    r = u->rows;
+    c = 1;
 
     rewind(infile);
 
     while(fscanf(infile, "%c", &buff) != EOF) {
         if(buff == '\n') {
-            r ++;
-            c = 0;
+            r --;
+            c = 1;
         } else {
             *cell(u, c, r) = buff;
             c ++;
@@ -73,8 +72,9 @@ void read_in_file(FILE *infile, board u) {
 }
 
 void write_out_file(FILE *outfile, board u) {
-    for(int i = 0; i < u->rows; i ++) {
-        for(int j = 0; j < u->cols; j ++) {
+    current_winner(u);
+    for(int i = u->rows; i >= 1; i --) {
+        for(int j = 1; j <= u->cols; j ++) {
             fprintf(outfile,"%c", *cell(u, j, i));
         }
         fprintf(outfile, "\n");
@@ -84,8 +84,8 @@ void write_out_file(FILE *outfile, board u) {
 char next_player(board u) {
     int x = 0, o = 0;
 
-    for(int i = 0; i < u->rows; i ++) {
-        for(int j = 0; j < u->cols; j ++) {
+    for(int i = 1; i <= u->rows; i ++) {
+        for(int j = 1; j <= u->cols; j ++) {
             char c = *cell(u, j, i);
             if(c == 'x') {
                 x ++;
@@ -112,14 +112,14 @@ char current_winner(board u) {
         int dx = directions[d][0];
         int dy = directions[d][1];
 
-        for(int i = 0; i < u->cols; i ++) {
-            for(int j = 0; j < u-> rows; j ++) {
+        for(int i = 1; i <= u->cols; i ++) {
+            for(int j = u->rows; j >= 1; j --) {
                 int maxj = j + 3 * dy;
-                if(maxj >= u-> rows || maxj < 0) {
+                if(maxj > u-> rows || maxj < 1) {
                     continue;
                 }
 
-                line[0] = cell_wrapc(u, i, j, true);
+                line[0] = cell(u, i, j);
                 bool flag = false;
 
                 if(*line[0] == '.') {
@@ -138,6 +138,7 @@ char current_winner(board u) {
                     for(int k = 0; k < 4; k ++) {
                         *line[k] = toupper(*line[k]);
                     }
+
                     return *line[0];
                 }
             }
@@ -150,24 +151,16 @@ char current_winner(board u) {
 struct move read_in_move(board u) {
     struct move m;
     printf("Player %c enter column to place your token: ", next_player(u)); //Do not edit this line
-    scanf("%u", &m.column);
+    scanf("%d", &m.column);
     printf("Player %c enter row to rotate: ", next_player(u)); // Do not edit this line
-    scanf("%u", &m.row);
-
-    // Deal with indexing from 1
-    m.column -= 1;
-
-    if(m.row != 0) {
-        m.row -= SIGN(m.row);
-        m.row = u->rows - 1 - abs(m.row);
-    }
+    scanf("%d", &m.row);
 
     return m;
 }
 
 int is_valid_move(struct move m, board u) {
-    int oob = m.column >= u->cols || m.column < 0 || abs(m.row) >= u->rows;
-    int col_full = *cell(u, m.column, 0) != '.';
+    int oob = m.column > u->cols || m.column < 1 || abs(m.row) > u->rows;
+    int col_full = *cell(u, m.column, u->rows) != '.';
     return !oob && !col_full;
 }
 
@@ -179,10 +172,10 @@ char is_winning_move(struct move m, board u) {
 void rotate_row(board u, int r) {
     int abs_r = abs(r);
     int sign = SIGN(r);
-    int c = sign == -1 ? 0 : u->cols - 1;
+    int c = sign == -1 ? 1 : u->cols;
     char temp = *cell(u, c, abs_r);
 
-    while(c >= 0 && c < u-> cols) {
+    while(c >= 1 && c <= u-> cols) {
         *cell(u, c, abs_r) = *cell(u, c - sign, abs_r);
         c -= sign;
     }
@@ -191,8 +184,8 @@ void rotate_row(board u, int r) {
 }
 
 void drop(board u, int col, int row, char ch) {
-    for(int i = row; i < u->rows; i ++) {
-        if(i + 1 == u->rows || *cell(u, col, i + 1) != '.') {
+    for(int i = row; i <= u->rows; i --) {
+        if(i - 1 == 0 || *cell(u, col, i - 1) != '.') {
             *cell(u, col, i) = ch;
             break;
         }
@@ -200,16 +193,16 @@ void drop(board u, int col, int row, char ch) {
 }
 
 void play_move(struct move m, board u) {
-    drop(u, m.column, 0, next_player(u));
+    drop(u, m.column, u->rows, next_player(u));
 
     if(m.row != 0) {
         rotate_row(u, m.row);
-        for(int i = 0; i < u->cols; i ++) {
-            for(int j = u->rows - 1; j > 0; j --) {
-                char *ptr = cell(u, i, j - 1);
-                char cache = *ptr;
+        for(int i = 1; i <= u->cols; i ++) {
+            for(int j = 1; j < u->rows; j ++) {
+                char *cell_ptr = cell(u, i, j + 1);
+                char cache = *cell_ptr;
                 if(*cell(u, i, j) == '.' && cache != '.') {
-                    *ptr = '.';
+                    *cell_ptr = '.';
                     drop(u, i, j, cache);
                 }
             }
