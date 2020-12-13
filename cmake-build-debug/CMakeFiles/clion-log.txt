@@ -1,1 +1,4 @@
-CMakeLists.txt not found in /Users/adamhodson/Desktop/systems-prog-project Select CMakeLists.txt file...
+"/Users/adamhodson/Library/Application Support/JetBrains/Toolbox/apps/CLion/ch-0/202.8194.17/CLion.app/Contents/bin/cmake/mac/bin/cmake" -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/adamhodson/Desktop/systems-prog-project
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/adamhodson/Desktop/systems-prog-project/cmake-build-debug
