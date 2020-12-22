@@ -165,8 +165,13 @@ int is_valid_move(struct move m, board u) {
 }
 
 char is_winning_move(struct move m, board u) {
-    // TODO (but why?)
-    return 0;
+    // Copy the board into a new struct, play the move, cache, free, return
+    struct board_structure c = *u;
+    play_move(m, &c);
+    char w = current_winner(&c);
+    free(c.data);
+    free(&c);
+    return w;
 }
 
 void rotate_row(board u, int r) {
