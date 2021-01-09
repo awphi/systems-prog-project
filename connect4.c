@@ -164,13 +164,25 @@ int is_valid_move(struct move m, board u) {
     return !oob && !col_full;
 }
 
+void deepcopy_board(board u, board c) {
+    // Deep copying board u
+    c->cols = u->cols;
+    c->rows = u->rows;
+    c-> data = calloc(u->cols * u->rows, sizeof(char));
+    for(int i = 1; i <= u->rows; i ++) {
+        for(int j = 1; j <= u->cols; j ++) {
+            *cell(c, j, i) = *cell(u, j, i);
+        }
+    }
+}
+
 char is_winning_move(struct move m, board u) {
     // Copy the board into a new struct, play the move, cache, free, return
-    struct board_structure c = *u;
-    play_move(m, &c);
-    char w = current_winner(&c);
-    free(c.data);
-    free(&c);
+    board c = setup_board();
+    deepcopy_board(u, c);
+    play_move(m, c);
+    char w = current_winner(c);
+    cleanup_board(c);
     return w;
 }
 
